@@ -22,8 +22,6 @@ class cloudflare_enum:
         self.atok = ''
 
     def log_in( self, username, password ):
-        parse_dict = {}
-
         r = self.s.get('https://www.cloudflare.com/', )
 
         new_headers = {
@@ -31,7 +29,11 @@ class cloudflare_enum:
         }
         self.s.headers.update( dict( new_headers.items() + self.global_headers.items() ) )
         r = self.s.get('https://www.cloudflare.com/a/login', )
-        parse_dict[ 'security_token_0' ] = self.find_between_r( r.text, '"security_token":"', '"}};</script>' ) # http://xkcd.com/292/
+        parse_dict = {
+            'security_token_0': self.find_between_r(
+                r.text, '"security_token":"', '"}};</script>'
+            )
+        }
 
         post_data = {
             'email': username,
@@ -120,8 +122,7 @@ class cloudflare_enum:
         return return_data['result']
 
     def get_spreadsheet( self, domain ):
-        dns_data = self.get_domain_dns( domain )
-        if dns_data:
+        if dns_data := self.get_domain_dns(domain):
             filename = domain.replace( ".", "_" ) + ".csv"
 
             with open( filename, 'wb' ) as csvfile:
@@ -129,8 +130,8 @@ class cloudflare_enum:
                 dns_writer.writerow( [ "name", "type", "content" ] )
                 for record in dns_data:
                     dns_writer.writerow( [ record["name"], record["type"], record["content"] ] )
-                
-            self.statusmsg( "Spreadsheet created at " + os.getcwd() + "/" + filename )
+
+            self.statusmsg(f"Spreadsheet created at {os.getcwd()}/{filename}")
 
     def print_banner( self ):
         if self.verbose:
@@ -185,11 +186,11 @@ class cloudflare_enum:
         except ValueError:
             return ""
 
-    def find_between( s, first, last ):
+    def find_between(self, first, last):
         try:
-            start = s.index( first ) + len( first )
-            end = s.index( last, start )
-            return s[start:end]
+            start = self.index(first) + len( first )
+            end = self.index(last, start)
+            return self[start:end]
         except ValueError:
             return ""
 
